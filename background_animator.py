@@ -1,15 +1,18 @@
-from moviepy.editor import VideoClip
-import numpy as np
 from PIL import Image
 from PIL.Image import Resampling
+from moviepy.editor import VideoClip
+import numpy as np
 
 
 class BackgroundAnimator:
-    def __init__(self, image_path):
+    def __init__(self, image_path, res_x=1920, res_y=1080):
         """Initialize with path to background image."""
         # Load the image using PIL
-        self.pil_image = Image.open(image_path).convert("RGBA")  # Ensure RGBA mode
-        self.original_size = self.pil_image.size
+        pil_image = Image.open(image_path).convert("RGBA")  # Ensure RGBA mode
+
+        # Scale the image to 4K resolution (3840x2160)
+        self.pil_image = pil_image.resize((res_x, res_y), Resampling.LANCZOS)
+        self.original_size = (res_x, res_y)  # Update the size to 4K
 
     def animate_background(self, duration, amplitude=0.1, frequency=0.08):
         """Create a breathing animation effect matching audio duration."""

@@ -1,63 +1,64 @@
 import os
 import time
+import multiprocessing as mp
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from typing import List, Optional
 from video_generator import VideoGenerator
+import logging
 
 
-class BatchProcessor:
-    def __init__(self, input_dir, output_dir, font_path):
-        """Initialize batch processor with directories and font path."""
+class ParallelBatchProcessor:
+    def __init__(self, input_dir: str, output_dir: str, font_path: str, max_workers: Optional[int] = None):
         self.input_dir = input_dir
         self.output_dir = output_dir
         self.font_path = font_path
-        self.generator = VideoGenerator(font_path)
-
-        # Create output directory if it doesn't exist
+        self.max_workers = max_workers or max(1, mp.cpu_count() - 1)
+        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+        self.logger = logging.getLogger(__name__)
         os.makedirs(output_dir, exist_ok=True)
 
-    def get_pending_videos(self):
-        """Get list of video numbers that need to be processed."""
-        # Get all .srt files and extract their numbers
-        srt_files = [f for f in os.listdir(self.input_dir) if f.endswith('.srt')]
-        video_numbers = [int(f.split('.')[0]) for f in srt_files]
+    @staticmethod
+    def process_single_video(args: tuple) -> tuple:
+        video_num, input_dir, output_dir, font_path, fps, res_x, res_y = args
+        try:
+            # Set up logger specific to this video process
+            process_logger = logging.getLogger(f"Video_{video_num}")
+            process_logger.setLevel(logging.INFO)
 
-        # Check which ones have all required files
-        pending = []
-        for num in video_numbers:
-            png_path = os.path.join(self.input_dir, f"{num}.png")
-            output_path = os.path.join(self.output_dir, f"output_{num}.mp4")
+            # Create Video Generator instance with logger
+            generator = VideoGenerator(font_path, process_logger)
 
-            # Check for either mp3 or wav audio file
-            has_audio = any(
-                os.path.exists(os.path.join(self.input_dir, f"{num}{ext}"))
-                for ext in ['.mp3', '.wav']
-            )
+            # Generate video
+            output_path = generator.create_video(video_num, input_dir, output_dir,fps, res_x, res_y)
 
-            if (os.path.exists(png_path) and
-                    has_audio and
-                    not os.path.exists(output_path)):
-                pending.append(num)
+            return video_num, True, output_path
+        except Exception as e:
+            return video_num, False, str(e)
 
-        return sorted(pending)
+    def process_videos_in_parallel(self, fps, res_x=1920, res_y=1080):
+        # Dynamically get video numbers based on available .srt or .png files in the input directory
+        video_files = [f for f in os.listdir(self.input_dir) if f.endswith('.srt')]
+        video_numbers = [int(f.split('.')[0]) for f in video_files]
 
-    def process_batch(self):
-        """Process all pending videos in sequence."""
-        while True:
-            pending_videos = self.get_pending_videos()
+        if not video_numbers:
+            self.logger.info("No video files to process.")
+            return
 
-            if not pending_videos:
-                print("No pending videos found. Waiting for new files...")
-                time.sleep(30)  # Wait 30 seconds before checking again
-                continue
+        self.logger.info(f"Found {len(video_numbers)} videos to process: {video_numbers}")
 
-            for video_num in pending_videos:
-                try:
-                    print(f"Processing video {video_num}...")
-                    output_path = self.generator.create_video(
-                        video_num,
-                        self.input_dir,
-                        self.output_dir
-                    )
-                    print(f"Successfully generated: {output_path}")
-                except Exception as e:
-                    print(f"Error processing video {video_num}: {str(e)}")
-                    continue
+        input_dir = self.input_dir
+        output_dir = self.output_dir
+        font_path = self.font_path
+
+        # Create a pool of workers to process videos in parallel
+        with mp.Pool(self.max_workers) as pool:
+            results = pool.map(self.process_single_video,
+                               [(video_num, input_dir, output_dir, font_path, fps, res_x, res_y) for video_num in
+                                video_numbers])
+
+        # Log the results
+        for video_num, success, result in results:
+            if success:
+                self.logger.info(f"Successfully processed video {video_num}: {result}")
+            else:
+                self.logger.error(f"Failed to process video {video_num}: {result}")
