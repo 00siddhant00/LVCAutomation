@@ -5,7 +5,7 @@ def main():
     # Configuration
     input_dir = "input_files"
     output_dir = "output_files"
-    font_path = "arial.ttf"
+    font_path = "klementin.otf"
 
     # Create and run the batch processor
     processor = BatchProcessor(input_dir, output_dir, font_path)

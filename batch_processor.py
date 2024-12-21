@@ -20,12 +20,21 @@ class BatchProcessor:
         srt_files = [f for f in os.listdir(self.input_dir) if f.endswith('.srt')]
         video_numbers = [int(f.split('.')[0]) for f in srt_files]
 
-        # Check which ones have corresponding PNG files
+        # Check which ones have all required files
         pending = []
         for num in video_numbers:
             png_path = os.path.join(self.input_dir, f"{num}.png")
             output_path = os.path.join(self.output_dir, f"output_{num}.mp4")
-            if os.path.exists(png_path) and not os.path.exists(output_path):
+
+            # Check for either mp3 or wav audio file
+            has_audio = any(
+                os.path.exists(os.path.join(self.input_dir, f"{num}{ext}"))
+                for ext in ['.mp3', '.wav']
+            )
+
+            if (os.path.exists(png_path) and
+                    has_audio and
+                    not os.path.exists(output_path)):
                 pending.append(num)
 
         return sorted(pending)
