@@ -120,6 +120,6 @@ Transform static backgrounds and subtitles into stunning animated lyric videos w
 ---
 
 ## **Contact & Support 🧑‍💻**
-Feel free to submit issues or feature requests on our [GitHub Issues Page](https://github.com/yourusername/batch-video-generator/issues).  
+Feel free to submit issues or feature requests on our [GitHub Issues Page](https://github.com/00siddhant00/LVCAutomation/issues/new).  
 
 **Happy Creating! 🎉**
