@@ -15,6 +15,7 @@ def main():
     output_dir = "output_files"
     font_path = "klementin.otf"
     div = 1
+    current_fps = 24
 
     # Create and run processor
     processor = ParallelBatchProcessor(
@@ -24,7 +25,8 @@ def main():
         max_workers=None  # Will use CPU count - 1
     )
 
-    config = Config(fps=5, res_x=int(2560 / div), res_y=int(1440 / div))
+    # config = Config(fps=current_fps, res_x=int(2560 / div), res_y=int(1440 / div))
+    config = Config(fps=current_fps, res_x=int(1920 / div), res_y=int(1080 / div))
 
     print(f"x : {config.res_x}, y : {config.res_y}, fps: {config.fps}")
     processor.process_videos_in_parallel(config)

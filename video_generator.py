@@ -64,7 +64,12 @@ class VideoGenerator:
 
             # Create text clips for each subtitle
             text_clips = [
-                text_overlay.create_text_clip(text, start, duration)
+                text_overlay.create_text_clip(
+                    text=text,
+                    start=start,
+                    duration=duration,
+                    fps=config.fps
+                )
                 for start, duration, text in subtitles
             ]
 
