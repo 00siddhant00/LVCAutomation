@@ -19,7 +19,7 @@ class ParallelBatchProcessor:
 
     @staticmethod
     def process_single_video(args: tuple) -> tuple:
-        video_num, input_dir, output_dir, font_path, fps, res_x, res_y = args
+        video_num, input_dir, output_dir, font_path, config = args
         try:
             # Set up logger specific to this video process
             process_logger = logging.getLogger(f"Video_{video_num}")
@@ -29,13 +29,13 @@ class ParallelBatchProcessor:
             generator = VideoGenerator(font_path, process_logger)
 
             # Generate video
-            output_path = generator.create_video(video_num, input_dir, output_dir,fps, res_x, res_y)
+            output_path = generator.create_video(video_num, input_dir, output_dir, config)
 
             return video_num, True, output_path
         except Exception as e:
             return video_num, False, str(e)
 
-    def process_videos_in_parallel(self, fps, res_x=1920, res_y=1080):
+    def process_videos_in_parallel(self, config):
         # Dynamically get video numbers based on available .srt or .png files in the input directory
         video_files = [f for f in os.listdir(self.input_dir) if f.endswith('.srt')]
         video_numbers = [int(f.split('.')[0]) for f in video_files]
@@ -53,7 +53,7 @@ class ParallelBatchProcessor:
         # Create a pool of workers to process videos in parallel
         with mp.Pool(self.max_workers) as pool:
             results = pool.map(self.process_single_video,
-                               [(video_num, input_dir, output_dir, font_path, fps, res_x, res_y) for video_num in
+                               [(video_num, input_dir, output_dir, font_path, config) for video_num in
                                 video_numbers])
 
         # Log the results

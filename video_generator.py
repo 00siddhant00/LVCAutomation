@@ -14,7 +14,7 @@ class VideoGenerator:
         self.font_path = font_path
         self.logger = logger or logging.getLogger(__name__)  # Default to root logger if no logger is provided
 
-    def create_video(self, video_number, input_dir, output_dir, done_file_path="output_files",fps=30, res_x=1920, res_y=1080):
+    def create_video(self, video_number, input_dir, output_dir, config):
         """Create video synchronized with audio duration and update done.txt file."""
         try:
             # Construct file paths
@@ -46,7 +46,7 @@ class VideoGenerator:
             audio_clip, audio_duration = AudioHandler.load_audio(audio_path)
 
             # Initialize components
-            background_animator = BackgroundAnimator(background_path, res_x=res_x, res_y=res_y)
+            background_animator = BackgroundAnimator(background_path, res_x=config.res_x, res_y=config.res_y)
             text_overlay = TextOverlay(
                 self.font_path,
                 font_size=150,  # Initial size; dynamic adjustment will follow
@@ -63,25 +63,20 @@ class VideoGenerator:
             subtitles = SubtitleParser.parse_subtitle_file(subtitle_path)
 
             # Create text clips for each subtitle
-            text_clips = text_overlay.create_fading_text_clip(
-                "This is a test of word-by-word fading.",
-                start=0,
-                word_duration=1,
-                total_duration=8,
-                position='center',
-                res_x=res_x,
-                res_y=res_y
-            )
+            text_clips = [
+                text_overlay.create_text_clip(text, start, duration)
+                for start, duration, text in subtitles
+            ]
 
             # Combine all clips with audio
             final_clip = CompositeVideoClip(
                 [background_clip] + text_clips,
                 # size=background_clip.size
-                size=(res_x, res_y)
+                size=(config.res_x, config.res_y)
             ).set_audio(audio_clip)
 
             # Export the final video
-            VideoExporter.export_video(final_clip, output_path, fps=fps, res_x=1920, res_y=1080)
+            VideoExporter.export_video(final_clip, output_path, config)
 
             # Clean up
             audio_clip.close()
@@ -90,7 +85,7 @@ class VideoGenerator:
             self.logger.info(f"Successfully generated video {video_number}: {output_path}")
 
             # Update done.txt after successful video generation
-            self._update_done_file(done_file_path, video_number, status="done")
+            # self._update_done_file(done_file_path, video_number, status="done")
 
             return output_path
 
@@ -99,7 +94,7 @@ class VideoGenerator:
             self.logger.error(f"Error generating video {video_number}: {str(e)}")
 
             # Update done.txt with failure status
-            self._update_done_file(done_file_path, video_number, status="failed")
+            # self._update_done_file(done_file_path, video_number, status="failed")
 
             raise
 

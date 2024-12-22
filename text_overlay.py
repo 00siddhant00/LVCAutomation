@@ -1,6 +1,6 @@
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import numpy as np
-from moviepy.editor import ImageClip, CompositeVideoClip
+from moviepy.editor import ImageClip
 
 
 class TextOverlay:
@@ -21,10 +21,17 @@ class TextOverlay:
 
     def generate_text_image(self, text):
         """Generate a high-resolution PIL Image with text and enhanced shadow."""
+        # Dynamically adjust font size for longer texts
+        max_font_size = 120  # Maximum font size
+        min_font_size = 60  # Minimum font size
+        scale_factor = 0.5  # Adjust based on length
+        dynamic_font_size = max(min_font_size, max_font_size - int(len(text) * scale_factor))
+        high_res_font = ImageFont.truetype(self.font.path, dynamic_font_size * self.resolution_scale)
+
         # Calculate text size at high resolution
         temp_img = Image.new('RGBA', (1, 1))
         temp_draw = ImageDraw.Draw(temp_img)
-        text_bbox = temp_draw.textbbox((0, 0), text, font=self.font)
+        text_bbox = temp_draw.textbbox((0, 0), text, font=high_res_font)
 
         # Create larger image to accommodate shadow spread
         padding = self.shadow_spread * 4
@@ -39,7 +46,7 @@ class TextOverlay:
         shadow_draw = ImageDraw.Draw(shadow_img)
         shadow_pos = (padding + self.shadow_offset[0],
                       padding + self.shadow_offset[1])
-        shadow_draw.text(shadow_pos, text, font=self.font,
+        shadow_draw.text(shadow_pos, text, font=high_res_font,
                          fill=self.shadow_color)
 
         # Apply Gaussian blur to shadow
@@ -50,7 +57,7 @@ class TextOverlay:
         # Draw main text
         text_draw = ImageDraw.Draw(text_img)
         text_draw.text((padding, padding), text,
-                       font=self.font, fill=self.font_color)
+                       font=high_res_font, fill=self.font_color)
 
         # Composite shadow and text
         high_res_img = Image.alpha_composite(shadow_img, text_img)
@@ -63,23 +70,10 @@ class TextOverlay:
         final_img = high_res_img.resize(target_size, Image.Resampling.LANCZOS)
         return final_img
 
-    def create_fading_text_clip(self, text, start, word_duration, total_duration, position='center', res_x=1920, res_y=1080):
-        """Create a MoviePy clip with text fading in word by word."""
-        words = text.split()
-        word_clips = []
-        current_time = start
-
-        for word in words:
-            text_img = self.generate_text_image(word)
-            word_clip = (ImageClip(np.array(text_img))
-                         .set_start(current_time)
-                         .set_duration(word_duration)
-                         .set_position(position)
-                         .fadein(word_duration))
-            word_clips.append(word_clip)
-            current_time += word_duration
-
-        # Combine all word clips
-        composite_clip = CompositeVideoClip(word_clips, size=(res_x, res_y))  # 1080p resolution
-        composite_clip = composite_clip.set_duration(total_duration)
-        return composite_clip
+    def create_text_clip(self, text, start, duration, position='center'):
+        """Create a MoviePy clip with the text overlay."""
+        text_img = self.generate_text_image(text)
+        clip = ImageClip(np.array(text_img))
+        return (clip.set_start(start)
+                .set_duration(duration)
+                .set_position(position))
