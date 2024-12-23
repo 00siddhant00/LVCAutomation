@@ -49,11 +49,12 @@ class VideoGenerator:
             background_animator = BackgroundAnimator(background_path, res_x=config.res_x, res_y=config.res_y)
             text_overlay = TextOverlay(
                 self.font_path,
-                font_size=150,  # Initial size; dynamic adjustment will follow
-                shadow_spread=8,  # Higher spread for high-res text
-                shadow_opacity=0.8,
-                shadow_offset=(6, 6),  # Adjusted for high resolution
-                resolution_scale=8  # High resolution scale for crisp text
+                font_size=160,  # Initial size; dynamic adjustment will follow
+                shadow_spread=5,  # Higher spread for high-res text
+                shadow_opacity=0.9,
+                shadow_color=(255, 255, 255),
+                shadow_offset=(0, 0),  # Adjusted for high resolution
+                resolution_scale=1  # High resolution scale for crisp text
             )
 
             # Generate animated background matching audio duration

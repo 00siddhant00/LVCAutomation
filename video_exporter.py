@@ -9,7 +9,7 @@ class VideoExporter:
                 fps=config.fps,
                 codec='libx264',
                 audio_codec='aac',
-                threads=4,
+                threads=1,
                 preset='fast',
                 ffmpeg_params=['-vf', f'scale={config.res_x}:{config.res_y}', '-c:v', 'h264_nvenc', '-c:a', 'aac']  # Scale to 2K
             )
