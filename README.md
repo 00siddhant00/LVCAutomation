@@ -17,7 +17,10 @@ Transform static backgrounds and subtitles into stunning animated lyric videos w
 
 ## **Desired Result Output**
 
-https://github.com/00siddhant00/LVCAutomation/blob/master/output_demo.mp4
+<video width="640" height="360" controls>
+  <source src="https://github.com/00siddhant00/LVCAutomation/blob/master/output_demo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ---
 
