@@ -1,4 +1,4 @@
-# Batch Lyrics Video Creation Automation System
+# Batch Lyrics Video Generation Automation System
 
 ### Hyper-Efficient Video Automation Suite 🎥✨  
 Transform static backgrounds and subtitles into stunning animated lyric videos with ease! This tool automates the creation of videos by seamlessly integrating animated backgrounds, styled text overlays, and subtitle syncing.
