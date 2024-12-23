@@ -15,6 +15,11 @@ Transform static backgrounds and subtitles into stunning animated lyric videos w
 
 ---
 
+## **Desired Result Output**
+![](https://github.com/00siddhant00/LVCAutomation/raw/refs/heads/master/output_demo.mp4)
+
+---
+
 ## **How It Works 📜**
 1. **Animated Background**:  
    - Adds a subtle "breathing" effect to static background images using sinusoidal scaling.  
